@@ -2,7 +2,14 @@
 #include <time.h>
 using namespace std;
 
-// 오늘의 주제 : TextRPG
+// 오늘의 주제 : TextRPG2
+
+// main
+// - EnterLobby (PlayerInfo)
+// -- CreatePlayer
+// -- EnterGame (MonsterInfo)
+// --- CreateMonster
+// --- EnterBattle
 
 enum PlayerTpye
 {
@@ -18,31 +25,27 @@ enum MonsterType
 	MT_Skeleton = 3,
 };
 
-struct ObjectInfo
+struct StatInfo
 {
-	int type;
-	int hp;
-	int attack;
-	int defence;
+	int hp = 0;
+	int attack = 0;
+	int defence = 0;
 };
 
-ObjectInfo playerInfo;
-ObjectInfo monsterInfo;
-
 void EnterLobby();
-void SelectPlayer();
-void EnterField();
-void CreateRandomMonster();
-void EnterBattle();
+void PrintMessage(const char* msg);
+void CreatePlayer(StatInfo* playerInfo);
+void PrintStatInfo(const char* name, const StatInfo& info);
+void EnterGame(StatInfo* playerInfo);
+void CreateMonsters(StatInfo* monsterInfo, int count);
+bool EnterBattle(StatInfo* playerInfo, StatInfo* monsterInfo);
+
 
 int main()
 {
 	// 랜덤 시드 설정
-	srand(time(0));
+	srand((unsigned)time(nullptr));
 	EnterLobby();
-
-
-
 	return 0;
 }
 
@@ -51,169 +54,164 @@ void EnterLobby()
 {
 	while (true)
 	{
-		cout << "--------------------" << endl;
-		cout << "로비에 입장했습니다." << endl;
-		cout << "--------------------" << endl;
+		PrintMessage("로비에 입장했습니다.");
 
 		// 플레이어 직업 선택
-		SelectPlayer();
+		StatInfo playerInfo;
+		CreatePlayer(&playerInfo);
+		PrintStatInfo("Player", playerInfo);
 
+		EnterGame(&playerInfo);
+	}
+}
 
-		cout << "----------------------------" << endl;
-		cout << "(1) 필드 입장  (2) 게임 종료" << endl;
-		cout << "----------------------------" << endl;
+void PrintMessage(const char* msg)
+{
+	cout << "--------------------------------------" << endl;
+	cout << msg << endl;
+	cout << "--------------------------------------" << endl;
+}
+
+void CreatePlayer(StatInfo* playerInfo)
+{
+	bool ready = false;
+
+	while (ready == false)
+	{
+		PrintMessage("캐릭터 생성창");
+		PrintMessage("(1) 기사  (2) 궁수  (3) 법사");
 		cout << "> ";
 
 		int input;
 		cin >> input;
 
-		if (input == 1)
+		switch (input)
 		{
-			EnterField();
-		}
-		else
-		{
-
-		}
-
-	}
-
-}
-
-void SelectPlayer()
-{
-	while (true)
-	{
-		cout << "----------------------------" << endl;
-		cout << "직업을 골라주세요." << endl;
-		cout << "(1) 기사  (2) 궁수  (3) 법사" << endl;
-		cout << "----------------------------" << endl;
-		cout << "> ";
-
-		cin >> playerInfo.type;
-
-		if (playerInfo.type == PT_Kight)
-		{
-			cout << "기사 생성중... !" << endl;
-			playerInfo.hp = 150;
-			playerInfo.attack = 10;
-			playerInfo.defence = 5;
+		case PT_Kight:
+			playerInfo->hp = 100;
+			playerInfo->attack = 10;
+			playerInfo->defence = 5;
+			ready = true;
 			break;
-		}
-		else if (playerInfo.type == PT_Archer)
-		{
-			cout << "궁수 생성중... !" << endl;
-			playerInfo.hp = 100;
-			playerInfo.attack = 15;
-			playerInfo.defence = 3;
+
+		case PT_Archer:
+			playerInfo->hp = 80;
+			playerInfo->attack = 15;
+			playerInfo->defence = 3;
+			ready = true;
 			break;
-		}
-		else if (playerInfo.type == PT_Mage)
-		{
-			cout << "법사 생성중... !" << endl;
-			playerInfo.hp = 80;
-			playerInfo.attack = 25;
-			playerInfo.defence = 0;
+
+		case PT_Mage:
+			playerInfo->hp = 50;
+			playerInfo->attack = 25;
+			playerInfo->defence = 1;
+			ready = true;
 			break;
 		}
 	}
 }
 
-void EnterField()
+void PrintStatInfo(const char* name, const StatInfo& info)
 {
+	cout << "--------------------------------------" << endl;
+	cout << name << " : HP = " << info.hp << " ATT = " << info.attack << " DEF = " << info.defence << endl;
+	cout << "--------------------------------------" << endl;
+}
+
+void EnterGame(StatInfo* playerInfo)
+{
+	const int MONSTER_COUNT = 2;
+	PrintMessage("게임에 입장했습니다.");
+
 	while (true)
 	{
-		cout << "--------------------" << endl;
-		cout << "필드에 입장했습니다." << endl;
-		cout << "--------------------" << endl;
+		StatInfo monsterInfo[MONSTER_COUNT];
+		CreateMonsters(monsterInfo, MONSTER_COUNT);
 
-		cout << "[PLAYER] HP : " << playerInfo.hp << " / ATT : " << playerInfo.attack << " / DEF : " << playerInfo.defence << endl;
+		for (int i = 0; i < MONSTER_COUNT; i++)
+			PrintStatInfo("Monster", monsterInfo[i]);
 
-		CreateRandomMonster();
+		PrintStatInfo("Player", *playerInfo);
 
-		cout << "--------------------" << endl;
-		cout << "(1) 전투  (2) 도주" << endl;
-		cout << "--------------------" << endl;
-		cout << "> ";
+		PrintMessage("(1) 전투  (2) 전투  (3) 도망");
 
 		int input;
 		cin >> input;
 
-		if (input == 1)
+		if (input == 1 || input == 2)
 		{
-			EnterBattle();
-			if (playerInfo.hp == 0)
-				return;
-		}
-		else
-		{
-
+			int index = input - 1;
+			bool victory = EnterBattle(playerInfo, &monsterInfo[index]);
+			if (victory == false)
+				break;
 		}
 	}
 }
 
-void CreateRandomMonster()
+void CreateMonsters(StatInfo* monsterInfo, int count)
 {
-	// 1 - 3
-	monsterInfo.type = 1 + (rand() % 3);
-
-	switch (monsterInfo.type)
+	for (int i = 0; i < count; i++)
 	{
-	case MT_Slime:
-		cout << "슬라임 생성중... ! (HP: 15 / ATT: 5 / DEF: 0)" << endl;
-		monsterInfo.hp = 15;
-		monsterInfo.attack = 5;
-		monsterInfo.defence = 0;
-		break;
-	case MT_Orc:
-		cout << "오크 생성중... ! (HP: 40 / ATT: 10 / DEF: 3)" << endl;
-		monsterInfo.hp = 40;
-		monsterInfo.attack = 10;
-		monsterInfo.defence = 3;
-		break;
-	case MT_Skeleton:
-		cout << "스켈레톤 생성중... ! (HP: 80 / ATT: 15 / DEF: 5)" << endl;
-		monsterInfo.hp = 80;
-		monsterInfo.attack = 15;
-		monsterInfo.defence = 5;
-		break;
+		int randValue = 1 + (rand() % 3);
+		switch (randValue)
+		{
+		case MT_Slime:
+			monsterInfo[i].hp = 30;
+			monsterInfo[i].attack = 5;
+			monsterInfo[i].defence = 1;
+			break;
+
+		case MT_Orc:
+			monsterInfo[i].hp = 40;
+			monsterInfo[i].attack = 8;
+			monsterInfo[i].defence = 2;
+			break;
+
+		case MT_Skeleton:
+			monsterInfo[i].hp = 50;
+			monsterInfo[i].attack = 15;
+			monsterInfo[i].defence = 3;
+			break;
+		}
 	}
 }
 
-void EnterBattle()
+bool EnterBattle(StatInfo* playerInfo, StatInfo* monsterInfo)
 {
 	while (true)
 	{
-		int damage = playerInfo.attack - monsterInfo.defence;
+		int damage = playerInfo->attack - monsterInfo->defence;
 
 		if (damage < 0)
 			damage = 0;
 
 		// 선빵
-		monsterInfo.hp -= damage;
-		if (monsterInfo.hp < 0)
-			monsterInfo.hp = 0;
+		monsterInfo->hp -= damage;
+		if (monsterInfo->hp < 0)
+			monsterInfo->hp = 0;
 
-		cout << "몬스터 남은 체력 : " << monsterInfo.hp << endl;
-		if (monsterInfo.hp == 0)
+		PrintStatInfo("Monster", *monsterInfo);
+		if (monsterInfo->hp == 0)
 		{
-			cout << "몬스터를 처치했습니다." << endl;
-			return;
+			PrintMessage("몬스터를 처치했습니다.");
+			return true;
 		}
 
-		damage = monsterInfo.attack - playerInfo.defence;
+		damage = monsterInfo->attack - playerInfo->defence;
 		if (damage < 0)
 			damage = 0;
 
 		// 반격
-		if (playerInfo.hp < 0)
-			playerInfo.hp = 0;
+		playerInfo->hp -= damage;
+		if (playerInfo->hp < 0)
+			playerInfo->hp = 0;
 
-		cout << "플레이어 남은 체력 : " << playerInfo.hp << endl;
-		if (playerInfo.hp == 0)
+		PrintStatInfo("Player", *playerInfo);
+
+		if (playerInfo->hp == 0)
 		{
-			cout << "당신은 사망했습니다... Game Over" << endl;
-			return;
+			PrintMessage("Game Over");
+			return false;
 		}
 	}
 }
