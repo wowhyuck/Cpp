@@ -4,6 +4,9 @@ using namespace std;
 
 // 오늘의 주제 : TextRPG2
 
+// 절차(procedural)지향 프로그래밍
+// - procedure = 함수
+
 // main
 // - EnterLobby (PlayerInfo)
 // -- CreatePlayer
