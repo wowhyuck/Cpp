@@ -37,10 +37,10 @@ public:
 	Position() {}
 
 	// [복사 생성자]
-	Position(const Position& arg)
-	{
+	//Position(const Position& arg)
+	//{
 
-	}
+	//}
 
 	Position operator+(const Position& arg)
 	{
@@ -118,7 +118,6 @@ int main()
 	pos2._y = 4;
 
 	Position pos3 = pos1 + pos2;
-
 	Position pos4 = 1 + pos3;
 
 	bool isSame = (pos3 == pos4);

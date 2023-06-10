@@ -109,8 +109,8 @@ void HelloKnight(Knight k)
 
 int main()
 {
-	Knight k1(200);
-	//k1._hp = 100;
+	Knight k1(200);		// 기존 객체
+	k1._hp = 100;
 	k1._attack = 10;
 	k1._posY = 0;
 	k1._posX = 0;
@@ -133,6 +133,7 @@ int main()
 
 	Knight k5;
 	k5 = (Knight)1;
+	k1 = (Knight)1;
 
 	HelloKnight((Knight)5);
 
